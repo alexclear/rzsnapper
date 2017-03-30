@@ -2,9 +2,37 @@ extern crate clap;
 extern crate yaml_rust;
 use clap::{Arg, App};
 use yaml_rust::YamlLoader;
+use yaml_rust::Yaml;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::Read;
+
+struct Job {
+    family: String,
+    datasets: Vec<String>,
+    schedule: String,
+    keep: i64,
+    recursive: bool,
+}
+
+fn get_jobs(yaml: Vec<Yaml>) -> Vec<Job> {
+    let mut jobs: Vec<Job> = Vec::new();
+    if yaml.len() == 0 {
+        panic!("The config file is empty!");
+    }
+    let yaml_jobs = (&yaml[0]).as_vec().unwrap();
+    for yaml_job in yaml_jobs {
+        let job = Job {
+            family: String::from(yaml_job["family"].as_str().unwrap()),
+            keep: yaml_job["keep"].as_i64().unwrap(),
+            recursive: yaml_job["recursive"].as_bool().unwrap(),
+            schedule: String::from(yaml_job["schedule"].as_str().unwrap()),
+            datasets: Vec::new(),
+        };
+        jobs.push(job);
+    }
+    jobs
+}
 
 fn main() {
     let matches = App::new("rzsnapper")
@@ -27,4 +55,8 @@ fn main() {
     buf_reader.read_to_string(&mut contents).unwrap();
 
     let config = YamlLoader::load_from_str(contents.as_str()).unwrap();
+    let jobs = get_jobs(config);
+    for job in jobs {
+        println!("Job family: {}", job.family);
+    }
 }
