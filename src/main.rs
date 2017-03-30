@@ -22,12 +22,17 @@ fn get_jobs(yaml: Vec<Yaml>) -> Vec<Job> {
     }
     let yaml_jobs = (&yaml[0]).as_vec().unwrap();
     for yaml_job in yaml_jobs {
+        let mut datasets: Vec<String> = Vec::new();
+        let yaml_datasets = yaml_job["datasets"].as_vec().unwrap();
+        for dataset in yaml_datasets {
+            datasets.push(String::from(dataset.as_str().unwrap()));
+        }
         let job = Job {
             family: String::from(yaml_job["family"].as_str().unwrap()),
             keep: yaml_job["keep"].as_i64().unwrap(),
             recursive: yaml_job["recursive"].as_bool().unwrap(),
             schedule: String::from(yaml_job["schedule"].as_str().unwrap()),
-            datasets: Vec::new(),
+            datasets: datasets,
         };
         jobs.push(job);
     }
@@ -58,5 +63,8 @@ fn main() {
     let jobs = get_jobs(config);
     for job in jobs {
         println!("Job family: {}", job.family);
+        for dataset in job.datasets {
+            println!("Dataset: {}", dataset);
+        }
     }
 }
